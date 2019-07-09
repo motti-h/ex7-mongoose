@@ -1,5 +1,5 @@
-interface Category {  
-    name: string; 
+interface Category {
+    name: string;
      }
 
 export { Category };

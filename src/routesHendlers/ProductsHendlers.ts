@@ -23,11 +23,9 @@ export async function productGetSpecificHandler(req: Request, res: Response, nex
 export async function productPostHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
     const newProducts: Product[] = req.body as Product[];
     const collection: Product[] = [];
-    for (let prod of newProducts)
-    {
+    for (const prod of newProducts) {
         const category = await DbCategory.find({_id: prod.categoryId});
-        console.log(category)
-        if (category.length > 0){
+        if (category.length > 0) {
             const p = await DbProduct.create(prod);
             collection.push(p);
         }
@@ -38,11 +36,11 @@ export async function productPostHandler(req: Request, res: Response, next?: Nex
 export async function productPutHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
     const id = req.params.id;
     const replaceProduct: Product[] = req.body as Product[];
-    const rep: Product[]=[];
-    for(let prod of replaceProduct){
+    const rep: Product[] = [];
+    for (const prod of replaceProduct) {
         const _id = new mongodb.ObjectID(id);
         const replaced = await DbProduct.update({_id}, prod).exec();
-        rep.push(prod)
+        rep.push(prod);
     }
     return (rep.length > 0) ? Promise.resolve(rep) : Promise.reject(new Error('404'));
 }

@@ -3,7 +3,7 @@ import { Category } from '../models';
 
 const schema = new mongoose.Schema(
   {
-    'name': { type: String },
+    name: { type: String },
   },
   {
     versionKey: false,
