@@ -1,40 +1,45 @@
-import mongodb from 'mongodb';
+import mongoose from 'mongoose';
 import { Credential } from '../models';
-import { OptionalId } from '../utils/types';
-import { DbEntityCollection } from '../utils/db-entity-collection';
 
-class CredentialsStore {
-  private collection: DbEntityCollection<Credential>;
+const schema = new mongoose.Schema(
+  {
+    email: { type: String, unique: true },
+    password: String,
+    roles: [String],
+  },
+  {
+    versionKey: false,
+  },
+);
 
-  constructor(
-    db: mongodb.Db,
-  ) {
-    this.collection = new DbEntityCollection(db.collection<Credential>('credentials'));
-  }
+/*
+// Mongoose includes 'id' virtual property already, setting to include that if toJSON is used
+schema.set('toJSON', {
+  virtuals: true,
+});
 
-  public all(stripObjectId = true): Promise<Credential[]> {
-    return this.collection.all(stripObjectId);
-  }
+Can remove _id altogether if needed, e.g.
+schema.set('toJSON', {
+  virtuals: true,
+  versionKey:false,
+  transform: function (doc, ret) { delete ret._id }
+});
+*/
 
-  public findById(id: string | mongodb.ObjectID): Promise<Credential | null> {
-    return this.collection.findById(id, true);
-  }
-
-  public findByCred(email: string, password: string): Promise<Credential | null> {
-    return this.collection.findOne({email, password}, true);
-  }
-
-  public add(creds: Array<OptionalId<Credential>>): Promise<void> {
-    return this.collection.add(creds);
-  }
-
-  public deleteById(id: string | mongodb.ObjectID): Promise<mongodb.DeleteWriteOpResultObject> {
-    return this.collection.deleteById(id);
-  }
-
-  public replace(cred: Credential, upsert = false): Promise<boolean> {
-    return this.collection.replace(cred, upsert);
-  }
+export interface DbCredentialModel extends Credential, mongoose.Document {
+  id: string;
 }
 
-export default CredentialsStore;
+const queryHelpers = {
+  byCred<Q extends mongoose.DocumentQuery<any, DbCredentialModel>>(
+    this: Q, email: string, password: string,
+  ) {
+    return this.where({ email, password });
+  },
+};
+
+schema.query = queryHelpers;
+
+// tslint:disable-next-line:variable-name
+export const DbCredential: mongoose.Model<DbCredentialModel, typeof queryHelpers> =
+  mongoose.model<DbCredentialModel, mongoose.Model<DbCredentialModel, typeof queryHelpers>>('Credential', schema);

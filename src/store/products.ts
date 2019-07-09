@@ -1,40 +1,24 @@
-import mongodb from 'mongodb';
+import mongoose from 'mongoose';
 import { Product } from '../models';
-import { OptionalId } from '../utils/types';
-import { DbEntityCollection } from '../utils/db-entity-collection';
 
-class ProductStore {
-  private collection: DbEntityCollection<Product>;
+const schema = new mongoose.Schema(
+  {
+    'categoryId':{ type: String},
+    'name': { type: String},
+    'itemsinstock': Number,
+  },
+  {
+    versionKey: false,
+  },
+);
 
-  constructor(
-    db: mongodb.Db,
-  ) {
-    this.collection = new DbEntityCollection(db.collection<Product>('products'));
-  }
-
-  public all(): Promise<Product[]> {
-    return this.collection.all(true);
-  }
-
-  public findById(id: string | mongodb.ObjectID): Promise<Product | null> {
-    return this.collection.findById(id, true);
-  }
-
-  public add(products: Array<OptionalId<Product>>): Promise<void> {
-    return this.collection.add(products);
-  }
-
-  public deleteById(id: string | mongodb.ObjectID): Promise<mongodb.DeleteWriteOpResultObject> {
-    return this.collection.deleteById(id);
-  }
-
-  public replace(product: Product, upsert = false): Promise<boolean> {
-    return this.collection.replace(product, upsert);
-  }
-
-  public find(categoryId: string): Promise<Product[]> {
-    return this.collection.find({categoryId});
-  }
+export interface DbProductModel extends Product, mongoose.Document {
+  //id: string;
 }
 
-export default ProductStore;
+// tslint:disable-next-line:variable-name
+export const DbProduct: mongoose.Model<DbProductModel> =
+  mongoose.model<DbProductModel>('Product', schema);
+
+  DbProduct.collection.dropIndexes((err,results)=>{
+  })

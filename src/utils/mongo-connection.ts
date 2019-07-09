@@ -1,8 +1,7 @@
-import mongodb from 'mongodb';
+import mongoose from 'mongoose';
 
 export class MongoConnection {
-  private client: mongodb.MongoClient | undefined;
-  public db: mongodb.Db | undefined;
+  private client: mongoose.Mongoose | undefined;
   private initialized = false;
 
   constructor(
@@ -10,17 +9,16 @@ export class MongoConnection {
   ) {}
 
   public async connect(): Promise<void> {
-    this.client = await mongodb.MongoClient.connect(
+    this.client = await mongoose.connect(
       this.url,
       { useNewUrlParser: true },
     );
-    this.db = this.client.db();
     this.initialized = true;
   }
 
   public async close(): Promise<void> {
     if (!this.initialized) return;
-    await this.client!.close();
+    await this.client!.disconnect();
     this.initialized = false;
   }
 }

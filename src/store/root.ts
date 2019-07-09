@@ -1,3 +1,4 @@
+/*
 import mongodb from 'mongodb';
 import ProductsStore from './products';
 import UsersStore from './users';
@@ -17,3 +18,4 @@ export default (db: mongodb.Db): RootStore => ({
   credentials: new CredentialsStore(db),
   categories: new CategoryStore(db),
 });
+*/

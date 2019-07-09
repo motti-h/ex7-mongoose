@@ -7,7 +7,7 @@ import winston from 'winston';
 import * as middle from './utils/middleware';
 import {initPassport} from './utils/passport';
 import exphbs from 'express-handlebars';
-import storeMiddleware from './routesHendlers/store';
+
 const alignedWithColorsAndTime = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp(),
@@ -40,8 +40,9 @@ helpers: {
 increment: (v: number) => v + 1,
 },
 }));
+
 app.set('view engine', 'handlebars');
-app.use(storeMiddleware());
+
 Object.keys(routeConfig).forEach((k) => {
     const routeConf = routeConfig[k];
     app.use(routeConf.prefix, routeConf.router);

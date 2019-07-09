@@ -1,44 +1,45 @@
 import { Category } from '../models';
-import {store} from '../store';
 import { Response, Request, NextFunction } from 'express';
-import * as categoryUtils from '../utils/categoryUtils';
 import * as Logger from '../utils/logger';
-import { resolveStore} from './store';
+import { DbCategory } from '../store/categories';
+import { DbProduct } from '../store/products';
+import mongodb from 'mongodb';
 const createLogger = Logger.createLogger('productLogger');
 
 export function categoryGetHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
-    const myStore = resolveStore(res);
-    return myStore.categories.all();
+    return DbCategory.find().exec();
 }
 
-export function categoryGetProductsByIdHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
+export async function categoryGetProductsByIdHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
     const id = req.params.id.toString();
-    const myStore = resolveStore(res);
-    createLogger.info(`Requested product from category id - ${id}`);
-    return myStore.products.find(id);
+    const product = await DbProduct.find({categoryId: id}).exec();
+    return (product) ? Promise.resolve(product) : Promise.reject(new Error('404'));
 }
 
-export function categoryGetByIdHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
+export async function categoryGetByIdHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
     const id = req.params.id;
-    const myStore = resolveStore(res);
-    return myStore.categories.findById(id);
+    const category = await DbCategory.findById(id).exec();
+    return (category) ? Promise.resolve(category) : Promise.reject(new Error('404'));
 }
 
-export function categoryPostHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
-    const newCategory: Category[] = req.body as Category[];
-    const myStore = resolveStore(res);
-    return myStore.categories.add(newCategory);
+export async function categoryPostHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
+    const newCategorys: Category[] = req.body as Category[];
+    const category = await DbCategory.insertMany(newCategorys);
+    return (category) ? Promise.resolve(category) : Promise.reject(new Error('204'));
 }
 
-export function categoryPutHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
-    const newCategory: Category = req.body as Category;
-    const myStore = resolveStore(res);
-    return myStore.categories.replace(newCategory);
+export async function categoryPutHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
+    const id = req.params.id;
+    const replaceCategory: Category = req.body as Category;
+    const _id = new mongodb.ObjectID(id);
+    const replaced = await DbCategory.replaceOne({_id}, replaceCategory).exec();
+    return (replaced) ? Promise.resolve(replaced) : Promise.reject(new Error('404'));
 }
 
 export async function categoryDeleteHandler(req: Request, res: Response, next?: NextFunction): Promise<any> {
     const id = req.params.id;
-    const myStore = resolveStore(res);
-    const r = await myStore.categories.deleteById(id);
-    return (r.result.n) ? Promise.resolve('deleted') : Promise.reject(new Error('204'));
+    const _id = new mongodb.ObjectID(id);
+    const deleted = await DbCategory.deleteOne({_id}).exec();
+// tslint:disable-next-line: max-line-length
+    return (deleted.ok && deleted.n) ? Promise.resolve(204) : Promise.reject(new Error('404'));
 }

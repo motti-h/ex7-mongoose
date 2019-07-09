@@ -1,11 +1,9 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import {store} from '../store';
 import config, { KnownConfigKey } from '../utils/config';
 import { UserCredential } from '../models';
-import CredentialsStore from '../store/credentials';
-import { getDb } from '../routesHendlers/store';
+import { DbCredential } from '../store/credentials';
 
 export function initPassport() {
   passport.use(new LocalStrategy(
@@ -14,13 +12,12 @@ export function initPassport() {
       passwordField: 'password',
     },
     (email, password, callback) => {
-      const credentials = new CredentialsStore(getDb()!);
-      const user = credentials.findByCred(email, password);
-      user.then((cred) => {
-        callback(null, cred, {message: 'succeeded'});
-      }).catch((err) => {
-        callback(null, false, {message: 'failed'});
-      });
+      DbCredential.findOne().byCred(email, password).exec(
+        (err, user) => {
+          if (user) callback(null, user, {message: 'succeeded'});
+          else callback(null, false, {message: 'failed'});
+        },
+      );
     },
   ));
 
